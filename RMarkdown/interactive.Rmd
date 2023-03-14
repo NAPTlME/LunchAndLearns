@@ -1,0 +1,129 @@
+---
+title: "Interactive with Plotly"
+author: "Nathan Pratt - Pond"
+date: "11/9/2021"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+knitr::opts_knit$set(root.dir = "~/GitHub/LunchAndLearns/RMarkdown")
+
+library(dplyr)
+library(tidyr)
+library(plotly)
+library(ggplot2)
+library(abind)
+library(grid)
+library(reshape2)
+library(igraph)
+library(threejs)
+library(stringr)
+
+itemDf = readRDS("gw2ItemsDf.rds")
+recipeDf = readRDS("gw2RecipeDf.rds")
+```
+
+## Interactive Plot with Plotly
+
+This is an old attempt at planar regression using the Iris dataset.
+
+```{r}
+
+irisWithCenter = data.frame(lapply(1:3, function(x) c(iris[[x]], mean(iris[[x]]), sapply(c(1:3,5:7), function(y) if (x == y%%4) { if (y > 3) {max(iris[[x]])} else {min(iris[[x]])} } else {mean(iris[[x]])}))))
+x = irisWithCenter[]
+colnames(irisWithCenter) = c("Sepal.Length", "Sepal.Width", "Petal.Length")
+irisWithCenter$Color = "Points"
+irisWithCenter$Color[1:nrow(iris)] = iris$Species
+irisWithCenter$Color[(nrow(iris)+ 1):nrow(irisWithCenter)] = "Cube"
+irisWithCenter$Color = as.factor(irisWithCenter$Color)
+petal_lm = lm(Petal.Length ~ 0 + Sepal.Length + Sepal.Width, data = iris)
+it = 0.05
+axis_x = seq(min(irisWithCenter$Sepal.Length), max(irisWithCenter$Sepal.Length), by = it)
+axis_y = seq(min(irisWithCenter$Sepal.Width), max(irisWithCenter$Sepal.Width), by = it)
+petal_lm_surface = expand.grid(Sepal.Length = axis_x, Sepal.Width = axis_y, KEEP.OUT.ATTRS = F)
+petal_lm_surface$Petal.Length = predict.lm(petal_lm, newdata = petal_lm_surface)
+petal_lm_surface = acast(petal_lm_surface, Sepal.Width ~ Sepal.Length, value.var = "Petal.Length")
+hcolors=c("red","blue","green", "#0C4B8E")[irisWithCenter$Species]
+
+p = plot_ly(x = axis_x, y = axis_y, z = petal_lm_surface, type = "surface") %>%
+  add_trace(data = irisWithCenter, x = ~Sepal.Length, y = ~Sepal.Width, z = ~Petal.Length,
+            color = ~Color, type = "scatter3d", 
+            mode = "markers", marker = hcolors)
+p
+```
+
+\newpage
+
+## IGraph with ThreeJs
+
+```{r Prep Data}
+# get recipe item components
+
+# getEdgeData = function(i) {
+#   x <<- recipeDf %>% filter(id == i$id)
+#   inputItems = data.frame(lapply(jsonlite::fromJSON(x$ingredients), function(x) unlist(x))) %>%
+#     mutate(type = "in")
+#   outputItem = data.frame(item_id = x$output_item_id,
+#                           count = x$output_item_count,
+#                           type = "out")
+#   return(rbind(inputItems, outputItem))
+# }
+# 
+# recipeDf$id = (max(itemDf$id) + 1):(max(itemDf$id) + nrow(recipeDf)) # make recipe ids unique (no need to persist, just for this run)
+# 
+# items = itemDf %>% select(id, name)
+# 
+# recipes = recipeDf %>% mutate(name = NA) %>% select(id, name)
+# 
+# recipeEdgeDf_raw = recipeDf %>% 
+#   select(id) %>%
+#   group_by(id) %>%
+#   do(getEdgeData(.)) %>%
+#   data.frame() %>%
+#   left_join(items, by = c("item_id" = "id")) %>%
+#   select(id, name, count, type)
+# recipeEdgeDf = rbind(
+#   setNames(recipeEdgeDf_raw %>% filter(type == "out"), c("id1", "id2", "count", "type")),
+#   setNames(recipeEdgeDf_raw[c(2,1,3,4)] %>% filter(type == "in"), c("id1", "id2", "count", "type"))
+# ) %>%
+#   select(id1, id2, count)
+# 
+# # remove any recipes with na ingredients
+# idsToRemove = unique(recipeEdgeDf$id1[is.na(recipeEdgeDf$id2)])
+# recipeEdgeDf = recipeEdgeDf %>% filter(!(id1 %in% idsToRemove))
+# 
+# nodes = unique(c(recipeEdgeDf$id1, recipeEdgeDf$id2))
+# 
+# nodeDf = rbind(
+#   data.frame(id = nodes[str_detect(nodes, "^\\d+$")], type = "recipe"),
+#   data.frame(id = nodes[!str_detect(nodes, "^\\d+$")], type = "ingredient")
+# ) %>%
+#   mutate(color = ifelse(type == "recipe", "grey65", "lightsteelblue3"))
+# 
+# 
+# g = graph_from_data_frame(recipeEdgeDf, vertices = nodeDf)
+# 
+# dyeName = "Unidentified Dye"
+# 
+# gDist = igraph::distances(g, v = V(g)[V(g)$name == dyeName], mode = "all")
+# 
+# gSub = igraph::induced_subgraph(g, which(gDist < 4))
+# 
+# gSimplified = simplify(gSub, remove.multiple = T, remove.loops = T)
+
+```
+
+```{r}
+# g.js = g
+# graph_attr(g.js, "layout") = NULL
+# 
+# gjs = graphjs(g.js, showLabels = F, stroke = F)
+
+data(ego)
+graphjs(ego, bg = "black")
+```
+
+
+

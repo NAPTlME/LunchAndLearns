@@ -5,3 +5,7 @@
 *.graphml
 *.pdf
 *.html
+*.Rhistory
+*.rds
+*.out
+*.aux

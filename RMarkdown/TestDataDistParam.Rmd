@@ -1,0 +1,33 @@
+---
+title: "Test Data Distribution - Parameterized"
+author: "Nathan Pratt - Pond"
+date: "`r Sys.Date()`"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/GitHub/LunchAndLearns/RMarkdown")
+```
+
+## Distribution
+
+The intent is to create a steep decay function where most entities have a value of 1, but rarely very high values can be obtained.
+
+$$
+\lambda e^{-\lambda (1-z)} \quad \textrm{where} \quad
+z = \lambda _2 e^{-\lambda _2 x} \quad |\quad x \in [0,\infty)
+$$
+We can modify these scales to see how the distribution reacts to Scale_1 and Scale_2.
+
+Note: $\lambda = \frac{1}{Scale\_1}$ and $\lambda _2 = \frac{1}{Scale\_2}$
+
+```{r dist, echo=FALSE}
+shinyAppFile("testDataDistShiny.R", 
+             options = list(
+               width = "100%", height = 550
+             )
+)
+```
+

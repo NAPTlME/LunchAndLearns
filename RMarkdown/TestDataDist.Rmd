@@ -1,0 +1,129 @@
+---
+title: "Test Data Distribution"
+author: "Nathan Pratt - Pond"
+date: "11/9/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+
+library(ggplot2)
+library(dplyr)
+library(knitr)
+```
+
+## Distribution
+
+The intent is to create a steep decay function where most entities have a value of 1, but rarely very high values can be obtained.
+
+$$
+\lambda e^{-\lambda (1-z)} \quad \textrm{where} \quad
+z = \lambda _2 e^{-\lambda _2 x} \quad |\quad x \in [0,\infty)
+$$
+
+If we were to plot this function, it would look like the following
+
+```{r, fig.show='hide'}
+scale1 = 1
+scale2 = 0.6
+lambda_1 = 1/scale1
+lambda_2 = 1/scale2
+tmp = curve(lambda_1 * exp(-lambda_1 * (1 - (lambda_2 * exp(-lambda_2 * x)))), from = 0, to = 50)
+```
+```{r, out.width=c("50%", "50%"), fig.show='hold'}
+ggplot(data.frame(tmp)) + 
+  geom_line(aes(x, y))
+
+z = rexp(500, scale2)
+vals = ceiling(lambda_1 * exp(-lambda_1 * (1 - z)))
+ggplot(data.frame(vals = vals)) + 
+  geom_histogram(aes(vals))
+```
+
+```{r, results='asis'}
+cat("\\twocolumn")
+```
+
+## General formatting
+
+Formatting can be done via a couple methods. **Rmarkdown** has several built in shortcuts for manipulating your *\textcolor{red}{text}*. In an html document you can also wrap the text in elements and set the color with <span style="color: red;">CSS</span>
+
+[Links](https://1904labs.com/) can also be included with display text or raw <https://1904labs.com/>
+
+\break
+
+```{r, fig.cap="plot in a column"}
+ggplot(data.frame(vals = vals)) + 
+  geom_histogram(aes(vals))
+```
+
+
+```{r, results='asis'}
+cat("\\onecolumn")
+```
+
+## Tables
+
+***
+
+### Below we will observe several values from the same table.
+
+```{r}
+df = data.frame(as.list(summary(vals)))
+```
+
+*Print out table*
+
+```{r}
+df
+```
+
+*Default Kable*
+
+```{r}
+df %>% kable(row.names = F)
+```
+
+*Latex*
+
+```{r}
+df %>% kable(row.names = F, format = "latex")
+```
+
+*Html*
+
+```{r}
+df %>% kable(row.names = F, format = "html")
+```
+
+*Pipe*
+
+```{r}
+df %>% kable(row.names = F, format = "pipe")
+```
+
+*Simple*
+
+```{r}
+df %>% kable(row.names = F, format = "simple")
+```
+
+*RST*
+
+```{r}
+df %>% kable(row.names = F, format = "rst")
+```
+
+
+*Example where the table runs over a page*
+
+```{r}
+data.frame(val = vals) %>% 
+  group_by(val) %>%
+  count() %>% data.frame() %>%
+  kable(row.names = F)
+```
+

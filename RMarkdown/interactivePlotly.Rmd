@@ -1,0 +1,45 @@
+---
+title: "Interactive with Plotly"
+author: "Nathan Pratt - Pond"
+date: "11/18/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+
+library(dplyr)
+library(plotly)
+library(ggplot2)
+library(abind)
+library(grid)
+library(reshape2)
+```
+
+## Interactive Plot
+
+```{r}
+
+irisWithCenter = data.frame(lapply(1:3, function(x) c(iris[[x]], mean(iris[[x]]), sapply(c(1:3,5:7), function(y) if (x == y%%4) { if (y > 3) {max(iris[[x]])} else {min(iris[[x]])} } else {mean(iris[[x]])}))))
+x = irisWithCenter[]
+colnames(irisWithCenter) = c("Sepal.Length", "Sepal.Width", "Petal.Length")
+irisWithCenter$Color = "Points"
+irisWithCenter$Color[1:nrow(iris)] = iris$Species
+irisWithCenter$Color[(nrow(iris)+ 1):nrow(irisWithCenter)] = "Cube"
+irisWithCenter$Color = as.factor(irisWithCenter$Color)
+petal_lm = lm(Petal.Length ~ 0 + Sepal.Length + Sepal.Width, data = iris)
+it = 0.05
+axis_x = seq(min(irisWithCenter$Sepal.Length), max(irisWithCenter$Sepal.Length), by = it)
+axis_y = seq(min(irisWithCenter$Sepal.Width), max(irisWithCenter$Sepal.Width), by = it)
+petal_lm_surface = expand.grid(Sepal.Length = axis_x, Sepal.Width = axis_y, KEEP.OUT.ATTRS = F)
+petal_lm_surface$Petal.Length = predict.lm(petal_lm, newdata = petal_lm_surface)
+petal_lm_surface = acast(petal_lm_surface, Sepal.Width ~ Sepal.Length, value.var = "Petal.Length")
+hcolors=c("red","blue","green", "#0C4B8E")[irisWithCenter$Species]
+
+p = plot_ly(x = axis_x, y = axis_y, z = petal_lm_surface, type = "surface") %>%
+  add_trace(data = irisWithCenter, x = ~Sepal.Length, y = ~Sepal.Width, z = ~Petal.Length,
+            color = ~Color, type = "scatter3d", 
+            mode = "markers", marker = hcolors)
+p
+```
+
